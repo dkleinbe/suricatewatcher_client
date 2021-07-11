@@ -1,34 +1,34 @@
 import argparse
 import logging
+import logging.config
 from os import name
 import socketio
 from camera import Camera
 
 
-my_logger = logging.getLogger(__name__)
-my_logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+logging.config.fileConfig('logger.conf',disable_existing_loggers=False)
 
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+my_logger = logging.getLogger('suricate_client')
 
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-my_logger.addHandler(ch)
+# 'application' code
+my_logger.debug('debug message')
+my_logger.info('info message')
+my_logger.warning('warn message')
+my_logger.error('error message')
+my_logger.critical('critical message')
 
 my_logger.info("LAUNCHING APP")
 
 sio = socketio.Client(logger=False, engineio_logger=False)
 
 
-@sio.event
+@sio.event(namespace='/video_stream')
 def connect():
-	print("I'm connected!")
-	my_logger.info("I'm connected!")
+	my_logger.info("I'm connected! to /video_stream")
+	
+@sio.event(namespace='/cmd_suricate')
+def connect():
+	my_logger.info("I'm connected! to /cmd_suricate")
 	
 
 @sio.event
@@ -41,10 +41,10 @@ def disconnect():
 	print("I'm disconnected!")
 	exit()
 
-@sio.event(namespace='/cmd')
+@sio.event(namespace='/cmd_suricate')
 def cmd_1(data):
-	print("+ Recieved cmd_1")
 	my_logger.info("+ Recieved cmd_1")
+	camera.stop()
 
 
 parser = argparse.ArgumentParser()
@@ -56,16 +56,16 @@ else:
 	exit()
 
 
-#logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
-
-my_logger.setLevel(logging.DEBUG)
 my_logger.info("Connecting to host: [%s]", host)
 
 sio.connect(host, namespaces=['/video_stream', '/cmd_suricate'])
 
+my_logger.info("Geting camera")
+
 camera = Camera()
 while True:
-	print("Frame")
+	my_logger.info("Frame")
+
 	frame = camera.get_frame()
 	sio.emit('frame', frame, '/video_stream')
 	
