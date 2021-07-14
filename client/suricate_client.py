@@ -2,9 +2,12 @@ import argparse
 import logging
 import logging.config
 from os import name
+from time import sleep
 import socketio
 from camera import Camera
 
+stream_video = False
+camera = None
 
 logging.config.fileConfig('logger.conf',disable_existing_loggers=False)
 
@@ -18,6 +21,8 @@ my_logger.error('error message')
 my_logger.critical('critical message')
 
 my_logger.info("LAUNCHING APP")
+
+
 
 sio = socketio.Client(logger=False, engineio_logger=False)
 
@@ -42,9 +47,24 @@ def disconnect():
 	exit()
 
 @sio.event(namespace='/cmd_suricate')
-def cmd_1(data):
-	my_logger.info("+ Recieved cmd_1")
-	camera.stop()
+def start_video_stream(data):
+	global stream_video
+	global camera
+	my_logger.info("+ Recieved start_video_stream")
+	
+	my_logger.info("Geting camera... " + str(stream_video))
+	camera = Camera()
+	stream_video = True
+
+@sio.event(namespace='/cmd_suricate')
+def stop_video_stream(data):
+	global stream_video
+	global camera
+	my_logger.info("+ Recieved stop_video_stream")
+	
+	my_logger.info("Stoping camera... " + str(stream_video))
+	camera =None
+	stream_video = False
 
 
 parser = argparse.ArgumentParser()
@@ -60,12 +80,16 @@ my_logger.info("Connecting to host: [%s]", host)
 
 sio.connect(host, namespaces=['/video_stream', '/cmd_suricate'])
 
-my_logger.info("Geting camera")
 
-camera = Camera()
 while True:
-	my_logger.info("Frame")
 
-	frame = camera.get_frame()
-	sio.emit('frame', frame, '/video_stream')
-	
+	my_logger.info("Waiting... " + str(stream_video))
+	sleep(1)
+	if stream_video == True:
+		my_logger.info("Frame")
+
+		frame = camera.get_frame()
+		sio.emit('frame', frame, '/video_stream')
+	else:
+		sleep(1)
+
