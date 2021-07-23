@@ -6,62 +6,71 @@ from time import sleep
 import socketio
 from camera import Camera
 from suricate_video_stream_ns import SuricateVideoStreamNS
-
-stream_video = False
-camera = None
+from suricate_cmd_ns import SuricateCmdNS
 
 logging.config.fileConfig('logger.conf',disable_existing_loggers=False)
 
 my_logger = logging.getLogger('suricate_client')
 
-# 'application' code
-my_logger.debug('debug message')
-my_logger.info('info message')
-my_logger.warning('warn message')
-my_logger.error('error message')
-my_logger.critical('critical message')
 
 my_logger.info("LAUNCHING APP")
 
+class Client:
+	def __init__(self):
+
+		self.sio = socketio.Client(logger=False, engineio_logger=False)
+
+		my_logger.info("Connecting to host: [%s]", host)
+
+		self.sio.register_namespace(SuricateVideoStreamNS('/suricate_video_stream'))
+		self.sio.register_namespace(SuricateCmdNS('/suricate_cmd', suricate_client=self))
 
 
-sio = socketio.Client(logger=False, engineio_logger=False)
+		self.sio.connect(host, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 
+		self._stream_video = False
+		self._camera = None
+
+	@property
+	def camera(self):
+		my_logger.info('+ Getting suricate camera: ' + str(self._camera))
+		return self._camera
 	
-@sio.event(namespace='/suricate_cmd')
-def connect():
-	my_logger.info("I'm connected! to /suricate_cmd")
-	
+	@camera.setter
+	def camera(self, cam):
+		my_logger.info('+ Setting suricate camera: ' + str(cam))
+		self._camera = cam	
 
-@sio.event
-def connect_error(data):
-	print("The connection failed!")
-	#exit()
-
-@sio.event(namespace='/suricate_cmd')
-def disconnect():
-	print("I'm disconnected!")
+	@property
+	def stream_video(self):
+		my_logger.info('+ Getting suricate stream_video: ' + str(self._stream_video))
+		return self._stream_video
 	
+	@stream_video.setter
+	def stream_video(self, stream):
+		my_logger.info('+ Setting suricate stream_video: ' + str(stream))
+		self._stream_video = stream	
 
-@sio.event(namespace='/suricate_cmd')
-def start_video_stream(data):
-	global stream_video
-	global camera
-	my_logger.info("+ Recieved start_video_stream")
-	
-	my_logger.info("Geting camera... " + str(stream_video))
-	camera = Camera()
-	stream_video = True
+	def run(self):
+		
+		while True:
 
-@sio.event(namespace='/suricate_cmd')
-def stop_video_stream(data):
-	global stream_video
-	global camera
-	my_logger.info("+ Recieved stop_video_stream")
-	
-	my_logger.info("Stoping camera... " + str(stream_video))
-	camera = None
-	stream_video = False
+			my_logger.info("Waiting... ")
+			sleep(1)
+
+			if self.stream_video == True:
+				my_logger.info("Frame")
+
+				frame = self.camera.get_frame()
+				try:
+					self.sio.emit('frame', frame, '/suricate_video_stream')
+			
+				except:
+					my_logger.exception("- Can't emit frame")
+					self.stream_video = False
+
+			else:
+				sleep(1)
 
 
 parser = argparse.ArgumentParser()
@@ -73,29 +82,8 @@ else:
 	exit()
 
 
-my_logger.info("Connecting to host: [%s]", host)
+client = Client()
 
-sio.register_namespace(SuricateVideoStreamNS('/suricate_video_stream'))
-
-sio.connect(host, namespaces=['/suricate_video_stream', '/suricate_cmd'])
-
-
-while True:
-
-	my_logger.info("Waiting... " + str(stream_video))
-	sleep(1)
-	if stream_video == True:
-		my_logger.info("Frame")
-
-		frame = camera.get_frame()
-		try:
-			sio.emit('frame', frame, '/suricate_video_stream')
-			
-		except:
-			my_logger.exception("- Can't emit frame")
-			stream_video = False
-
-	else:
-		sleep(1)
+client.run()
 
 my_logger.info("I'm dead meat.........")
