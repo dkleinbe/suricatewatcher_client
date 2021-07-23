@@ -5,6 +5,7 @@ from os import name
 from time import sleep
 import socketio
 from camera import Camera
+from suricate_video_stream_ns import SuricateVideoStreamNS
 
 stream_video = False
 camera = None
@@ -26,27 +27,23 @@ my_logger.info("LAUNCHING APP")
 
 sio = socketio.Client(logger=False, engineio_logger=False)
 
-
-@sio.event(namespace='/video_stream')
-def connect():
-	my_logger.info("I'm connected! to /video_stream")
 	
-@sio.event(namespace='/cmd_suricate')
+@sio.event(namespace='/suricate_cmd')
 def connect():
-	my_logger.info("I'm connected! to /cmd_suricate")
+	my_logger.info("I'm connected! to /suricate_cmd")
 	
 
 @sio.event
 def connect_error(data):
 	print("The connection failed!")
-	exit()
+	#exit()
 
-@sio.event
+@sio.event(namespace='/suricate_cmd')
 def disconnect():
 	print("I'm disconnected!")
-	exit()
+	
 
-@sio.event(namespace='/cmd_suricate')
+@sio.event(namespace='/suricate_cmd')
 def start_video_stream(data):
 	global stream_video
 	global camera
@@ -56,14 +53,14 @@ def start_video_stream(data):
 	camera = Camera()
 	stream_video = True
 
-@sio.event(namespace='/cmd_suricate')
+@sio.event(namespace='/suricate_cmd')
 def stop_video_stream(data):
 	global stream_video
 	global camera
 	my_logger.info("+ Recieved stop_video_stream")
 	
 	my_logger.info("Stoping camera... " + str(stream_video))
-	camera =None
+	camera = None
 	stream_video = False
 
 
@@ -78,7 +75,9 @@ else:
 
 my_logger.info("Connecting to host: [%s]", host)
 
-sio.connect(host, namespaces=['/video_stream', '/cmd_suricate'])
+sio.register_namespace(SuricateVideoStreamNS('/suricate_video_stream'))
+
+sio.connect(host, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 
 
 while True:
@@ -89,7 +88,14 @@ while True:
 		my_logger.info("Frame")
 
 		frame = camera.get_frame()
-		sio.emit('frame', frame, '/video_stream')
+		try:
+			sio.emit('frame', frame, '/suricate_video_stream')
+			
+		except:
+			my_logger.exception("- Can't emit frame")
+			stream_video = False
+
 	else:
 		sleep(1)
 
+my_logger.info("I'm dead meat.........")
