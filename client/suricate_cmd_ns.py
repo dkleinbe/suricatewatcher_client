@@ -1,6 +1,7 @@
 import logging
 import base64
-import socketio 
+import socketio
+from socketio import namespace 
 from camera import Camera
 
 logger = logging.getLogger('suricate_client.' + __name__)
