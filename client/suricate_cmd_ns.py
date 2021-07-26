@@ -1,8 +1,12 @@
+from __future__ import annotations
 import logging
 import base64
 import socketio
 from socketio import namespace 
 from camera import Camera
+import typing
+if typing.TYPE_CHECKING:
+	from suricate_client import Client
 
 logger = logging.getLogger('suricate_client.' + __name__)
 
@@ -12,7 +16,7 @@ class SuricateCmdNS(socketio.ClientNamespace):
 	
 	connection_count = 0
 
-	def __init__(self, namespace, suricate_client):
+	def __init__(self, namespace, suricate_client : Client):
 		logger.info("+ Init SuricateCmdNS")
 		super(socketio.ClientNamespace, self).__init__(namespace)
 		
@@ -30,6 +34,12 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		SuricateCmdNS.connection_count -= 1
 
 		logger.info("+ %s: disconnect: %d", self.namespace, SuricateCmdNS.connection_count)
+
+	def on_suricate_id(self, msg):
+
+		logger.info("+ Recieved suricate_id")
+
+		self.suricate_client._suricate_id = msg['suricate_id']
 
 	def on_start_video_stream(self, data):
 		

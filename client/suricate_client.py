@@ -18,7 +18,7 @@ my_logger.info("LAUNCHING APP")
 class Client:
 	def __init__(self):
 
-		self._id = 'NOT_SET'
+		self._suricate_id = 'NOT_SET'
 		self._stream_video = False
 		self._camera = None
 		self.sio = socketio.Client(logger=False, engineio_logger=False)
@@ -29,19 +29,19 @@ class Client:
 		self.sio.register_namespace(SuricateCmdNS('/suricate_cmd', suricate_client=self))
 
 
-		self.sio.connect(host, auth= { 'id' : self._id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
+		self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 
 		
 
 	@property
 	def id(self):
-		my_logger.info('+ Getting suricate camera: ' + str(self._id))
-		return self._id
+		my_logger.info('+ Getting suricate camera: ' + str(self._suricate_id))
+		return self._suricate_id
 	
 	@id.setter
 	def camera(self, id):
 		my_logger.info('+ Setting suricate camera: ' + str(id))
-		self._id = id	
+		self._suricate_id = id	
 
 	@property
 	def camera(self):
@@ -67,21 +67,19 @@ class Client:
 		
 		while True:
 
-			my_logger.info("Waiting... ")
-			sleep(1)
-
 			if self.stream_video == True:
 				my_logger.info("Frame")
 
 				frame = self.camera.get_frame()
 				try:
-					self.sio.emit('frame', { 'id' : self._id, 'frame' : frame }, '/suricate_video_stream')
+					self.sio.emit('frame', { 'id' : self._suricate_id, 'frame' : frame }, '/suricate_video_stream')
 			
 				except:
 					my_logger.exception("- Can't emit frame")
 					self.stream_video = False
 
 			else:
+				my_logger.info("Waiting... ")
 				sleep(1)
 
 
