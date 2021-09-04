@@ -13,9 +13,9 @@ class Camera(BaseCamera):
 	def frames():
 		count = 0
 		while True:
-			time.sleep(1)
-			Camera.logger.info('yield img')
-			yield Camera.imgs[int(time.time()) % 3]
+			time.sleep(1/10)
+			Camera.logger.debug('yield img')
+			yield Camera.imgs[int(time.time()*10) % 3]
 			#yield Camera.imgs[count % 3]
 			count += 1
 

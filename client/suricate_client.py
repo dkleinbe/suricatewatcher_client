@@ -1,66 +1,88 @@
+from typing import List, NewType, Optional, Union
 import argparse
-import logging
+import coloredlogs, logging
 import logging.config
+import json
 from os import name
 from time import sleep
 import socketio
-from camera import Camera
+from socketio import exceptions
+from base_camera import BaseCamera
 from suricate_video_stream_ns import SuricateVideoStreamNS
 from suricate_cmd_ns import SuricateCmdNS
 
-logging.config.fileConfig('logger.conf',disable_existing_loggers=False)
+
+with open('logger_conf2.json') as json_file:
+	conf = json.load(json_file)
+logging.config.dictConfig(conf['logging'])
 
 my_logger = logging.getLogger('suricate_client')
 
+my_logger.debug('Logger debug')
+my_logger.info('Logger init done')
+my_logger.warning('Logger warning')
+my_logger.error('Logger error')
+my_logger.critical('Logger critical')
 
 my_logger.info("LAUNCHING APP")
 
+
+SessionId = NewType('SessionId', str)
+CamType =  Optional[BaseCamera]
+
 class Client:
 	def __init__(self):
-
-		self._suricate_id = 'NOT_SET'
+					
+		self._suricate_id : SessionId = SessionId('NOT_SET')
 		self._stream_video = False
-		self._camera = None
+		self._camera      : CamType = None
 		self.sio = socketio.Client(logger=False, engineio_logger=False)
-
-		my_logger.info("Connecting to host: [%s]", host)
-
+		
 		self.sio.register_namespace(SuricateVideoStreamNS('/suricate_video_stream'))
 		self.sio.register_namespace(SuricateCmdNS('/suricate_cmd', suricate_client=self))
 
+		connected = False
+		while not connected:
+			try:
+				self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
+			except exceptions.ConnectionError as err:
+				my_logger.error("ConnectionError: %s", err)
+			else:
+				my_logger.info("Connected")
+				connected = True
+				
+		#self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 
-		self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 
-		
 
 	@property
 	def id(self):
-		my_logger.info('+ Getting suricate camera: ' + str(self._suricate_id))
+		my_logger.debug('+ Getting suricate camera: ' + str(self._suricate_id))
 		return self._suricate_id
 	
 	@id.setter
-	def camera(self, id):
-		my_logger.info('+ Setting suricate camera: ' + str(id))
+	def id(self, id):
+		my_logger.debug('+ Setting suricate camera: ' + str(id))
 		self._suricate_id = id	
 
 	@property
-	def camera(self):
-		my_logger.info('+ Getting suricate camera: ' + str(self._camera))
+	def camera(self) -> CamType:
+		my_logger.debug('+ Getting suricate camera: ' + str(self._camera))
 		return self._camera
 	
 	@camera.setter
-	def camera(self, cam):
-		my_logger.info('+ Setting suricate camera: ' + str(cam))
+	def camera(self, cam : CamType):
+		my_logger.debug('+ Setting suricate camera: ' + str(cam))
 		self._camera = cam	
 
 	@property
 	def stream_video(self):
-		my_logger.info('+ Getting suricate stream_video: ' + str(self._stream_video))
+		my_logger.debug('+ Getting suricate stream_video: ' + str(self._stream_video))
 		return self._stream_video
 	
 	@stream_video.setter
 	def stream_video(self, stream):
-		my_logger.info('+ Setting suricate stream_video: ' + str(stream))
+		my_logger.debug('+ Setting suricate stream_video: ' + str(stream))
 		self._stream_video = stream	
 
 	def run(self):
@@ -69,14 +91,14 @@ class Client:
 
 			if self.stream_video == True:
 				my_logger.info("Frame")
-
-				frame = self.camera.get_frame()
-				try:
-					self.sio.emit('frame', { 'id' : self._suricate_id, 'frame' : frame }, '/suricate_video_stream')
+				if self.camera is not None:
+					frame = self.camera.get_frame()
+					try:
+						self.sio.emit('frame', { 'id' : self._suricate_id, 'frame' : frame }, '/suricate_video_stream')
 			
-				except:
-					my_logger.exception("- Can't emit frame")
-					self.stream_video = False
+					except:
+						my_logger.exception("- Can't emit frame")
+						self.stream_video = False
 
 			else:
 				my_logger.info("Waiting... ")
@@ -96,4 +118,4 @@ client = Client()
 
 client.run()
 
-my_logger.info("I'm dead meat.........")
+my_logger.critical("I'm dead meat.........")

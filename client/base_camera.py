@@ -1,13 +1,14 @@
+from typing import Generator, List, Optional
 import time
 import threading
 import logging
 try:
-	from greenlet import getcurrent as get_ident
+	from greenlet import getcurrent as get_ident # type: ignore
 except ImportError:
 	try:
-		from thread import get_ident
+		from thread import get_ident # type: ignore
 	except ImportError:
-		from _thread import get_ident
+		from _thread import get_ident # type: ignore
 
 
 
@@ -53,10 +54,11 @@ class CameraEvent(object):
 		"""Invoked from each client's thread after a frame was processed."""
 		self.events[get_ident()][0].clear()
 
+Frame = Optional[bytes]
 
 class BaseCamera(object):
 	thread = None  # background thread that reads frames from camera
-	frame = None  # current frame is stored here by background thread
+	frame : Frame = None  # current frame is stored here by background thread
 	last_access = 0  # time of last client access to the camera
 	event = CameraEvent()
 	logger = logging.getLogger(__name__)
@@ -78,23 +80,23 @@ class BaseCamera(object):
 	def stop(self):
 		BaseCamera.last_access = 0
 
-	def get_frame(self):
+	def get_frame(self) -> Frame:
 		"""Return the current camera frame."""
 		BaseCamera.last_access = time.time()
 
 		# wait for a signal from the camera thread
-		BaseCamera.logger.info('wait for a signal from the camera thread.')
+		BaseCamera.logger.debug('wait for a signal from the camera thread.')
 
 		BaseCamera.event.wait()
 		BaseCamera.event.clear()
 
-		BaseCamera.logger.info('clear signal from the camera thread.')
+		BaseCamera.logger.debug('clear signal from the camera thread.')
 
 		return BaseCamera.frame
 
 	@staticmethod
-	def frames():
-		""""Generator that returns frames from the camera."""
+	def frames() -> Generator[None, bytes, None]:
+		"""Generator that returns frames from the camera."""
 		raise RuntimeError('Must be implemented by subclasses.')
 
 	@classmethod

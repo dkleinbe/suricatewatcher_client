@@ -1,0 +1,32 @@
+@startuml classdiag
+
+class Client {
+
+
+}
+
+class CameraEvent {
+  
+}
+
+abstract class BaseCamera {
+  Frame get_frame()
+  {abstract} {static} frames()
+}
+
+class Camera {
+
+  {static} frames()
+
+}
+
+class CameraPi {
+
+  {static} frames()
+}
+
+BaseCamera <|-- Camera
+BaseCamera <|-- CameraPi
+Client --> BaseCamera
+
+@enduml

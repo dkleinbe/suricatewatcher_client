@@ -1,0 +1,48 @@
+{
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "formatters": {
+			"colored": {
+				"()": "coloredlogs.ColoredFormatter",
+				"style": "{",
+				"datefmt": "%H:%M:%S",
+				"format": "{asctime:s}-{name:20.20s}-{module:20.20s}-{levelname:.^8s}: {message:s}",
+				"field_styles": {
+					"asctime": {"color": "green"}, 
+					"hostname": {"color": "white"}, 
+					"levelname": {"bold": "true", "color": "white"}, 
+					"name": {"color": "magenta", "bright" : "true"}, 
+					"programname": {"color": "cyan"}, 
+					"username": {"color": "yellow"}},
+				"level_styles": { 
+					"info" : { "color" : "white", "bright" : "true" },
+					"debug" : { "color" : "cyan", "bright" : "true" },
+					"warning" : { "color" : "yellow", "bright" : "true" },
+					"error" : { "color" : "red", "bright" : "true" },
+					"critical" : { "color" : "white", "bright" : "true", "background" : "red"}
+				}
+				
+			},
+            "multi-thread": {
+                "class": "logging.Formatter",
+                "style": "{",
+                "datefmt": "%I:%M:%S",
+                "format": "{levelname:8s}; {threadName:5d}; {asctime:s}; {name:<15s} {lineno:4d}; {message:s}"
+            }
+        },
+        "handlers": {
+            "console":{
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "colored",
+                "stream" : "ext://sys.stdout"
+            }
+        },
+        "loggers": { },
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO"
+        }
+    }
+}

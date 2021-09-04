@@ -23,6 +23,9 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		self.suricate_client = suricate_client
 		self.frame_count = 0
 
+	def on_connect_error(self, data):
+		logger.critical("Connection error")
+
 	def on_connect(self):
 		
 		SuricateCmdNS.connection_count += 1
@@ -59,4 +62,16 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		logger.info("Stoping camera... " + str(self.suricate_client.stream_video))
 		self.suricate_client.camera = None
 		self.suricate_client.stream_video = False
+
+	def on_start_cam_ctrl(self, data):
+
+		logger.info("+ Recieved start cam ctrl")
+
+	def on_stop_cam_ctrl(self, data):
+
+		logger.info("+ Recieved stop cam ctrl")
+			
+	def on_move_cam(self, data):
+
+		logger.info("+ Recieved move_cam")
 		
