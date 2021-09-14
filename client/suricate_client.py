@@ -1,4 +1,5 @@
-from typing import List, NewType, Optional, Union
+from camera import Camera
+from typing import List, NewType, Optional, Union, Any
 import argparse
 import coloredlogs, logging
 import logging.config
@@ -90,8 +91,9 @@ class Client:
 		while True:
 
 			if self.stream_video == True:
-				my_logger.info("Frame")
+				
 				if self.camera is not None:
+					
 					frame = self.camera.get_frame()
 					try:
 						self.sio.emit('frame', { 'id' : self._suricate_id, 'frame' : frame }, '/suricate_video_stream')

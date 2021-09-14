@@ -3,7 +3,7 @@ import logging
 import base64
 import socketio
 from socketio import namespace 
-from camera import Camera
+from camera_pi2 import Camera
 import typing
 if typing.TYPE_CHECKING:
 	from suricate_client import Client
