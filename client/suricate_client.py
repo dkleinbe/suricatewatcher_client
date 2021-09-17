@@ -5,7 +5,7 @@ import coloredlogs, logging
 import logging.config
 import json
 from os import name
-from time import sleep
+from time import sleep, time_ns
 import socketio
 from socketio import exceptions
 from base_camera import BaseCamera
@@ -96,7 +96,8 @@ class Client:
 					
 					frame = self.camera.get_frame()
 					try:
-						self.sio.emit('frame', { 'id' : self._suricate_id, 'frame' : frame }, '/suricate_video_stream')
+						time = time_ns()
+						self.sio.emit('frame', { 'id' : self._suricate_id, 'time' : time, 'frame' : frame }, '/suricate_video_stream')
 			
 					except:
 						my_logger.exception("- Can't emit frame")

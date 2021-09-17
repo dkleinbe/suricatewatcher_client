@@ -62,10 +62,10 @@ class Camera(BaseCamera):
 	@staticmethod
 	def frames():
 		#
-		with PiCamera(sensor_mode=2, resolution='500x500', framerate=10) as camera:
+		with PiCamera(sensor_mode=2, resolution='800x800', framerate=30) as camera:
 		
 			# let camera warm up
-			sleep(2)
+	        #sleep(3)
 			streamBuffer = StreamBuffer(camera)
 			camera.start_recording(streamBuffer, **recordingOptions)
 
