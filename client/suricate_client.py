@@ -88,6 +88,8 @@ class Client:
 
 	def run(self):
 		
+		self.sio.wait()
+		
 		while True:
 
 			if self.stream_video == True:

@@ -61,7 +61,7 @@ class BaseCamera(object):
 	frame : Frame = None  # current frame is stored here by background thread
 	last_access = 0  # time of last client access to the camera
 	event = CameraEvent()
-	logger = logging.getLogger(__name__)
+	logger = logging.getLogger('suricate_client.' + __name__)
 	
 
 	def __init__(self):

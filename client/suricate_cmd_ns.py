@@ -50,7 +50,8 @@ class SuricateCmdNS(socketio.ClientNamespace):
 	
 		logger.info("Geting camera... " + str(self.suricate_client.stream_video))
 
-		self.suricate_client.camera = Camera()
+		self.suricate_client.camera = Camera(self.suricate_client._suricate_id, self.suricate_client.sio)
+		self.suricate_client.camera.start_streaming()
 
 		self.suricate_client.stream_video = True
 
@@ -60,8 +61,10 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		logger.info("+ Recieved stop_video_stream")
 	
 		logger.info("Stoping camera... " + str(self.suricate_client.stream_video))
+		self.suricate_client.camera.stop_streaming()
 		self.suricate_client.camera = None
 		self.suricate_client.stream_video = False
+
 
 	def on_start_cam_ctrl(self, data):
 

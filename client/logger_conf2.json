@@ -7,12 +7,12 @@
 				"()": "coloredlogs.ColoredFormatter",
 				"style": "{",
 				"datefmt": "%H:%M:%S",
-				"format": "{asctime:s}-{name:20.20s}-{module:20.20s}-{levelname:.^8s}: {message:s}",
+				"format": "{asctime:s}-{threadName:10.10s}-{module:20.20s}-{levelname:.^8s}: {message:s}",
 				"field_styles": {
 					"asctime": {"color": "green"}, 
 					"hostname": {"color": "white"}, 
 					"levelname": {"bold": "true", "color": "white"}, 
-					"name": {"color": "magenta", "bright" : "true"}, 
+					"threadName": {"color": "magenta", "bright" : "true"}, 
 					"programname": {"color": "cyan"}, 
 					"username": {"color": "yellow"}},
 				"level_styles": { 
@@ -39,7 +39,16 @@
                 "stream" : "ext://sys.stdout"
             }
         },
-        "loggers": { },
+        "loggers": { 
+            "suricate_client": {
+                
+                "level": "INFO"
+            },
+            "suricate_client.camera_pi2": {
+                
+                "level": "DEBUG"
+            }
+        },
         "root": {
             "handlers": ["console"],
             "level": "INFO"
