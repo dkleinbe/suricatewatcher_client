@@ -46,7 +46,7 @@
             },
             "suricate_client.camera_pi2": {
                 
-                "level": "DEBUG"
+                "level": "INFO"
             }
         },
         "root": {

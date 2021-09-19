@@ -1,4 +1,3 @@
-from camera import Camera
 from typing import List, NewType, Optional, Union, Any
 import argparse
 import coloredlogs, logging
@@ -47,13 +46,12 @@ class Client:
 			try:
 				self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
 			except exceptions.ConnectionError as err:
-				my_logger.error("ConnectionError: %s", err)
+				my_logger.error("+ ConnectionError: %s", err)
 			else:
-				my_logger.info("Connected")
+				my_logger.info("+ Connected")
 				connected = True
 				
 		#self.sio.connect(host, auth= { 'id' : self._suricate_id }, namespaces=['/suricate_video_stream', '/suricate_cmd'])
-
 
 
 	@property
@@ -89,25 +87,6 @@ class Client:
 	def run(self):
 		
 		self.sio.wait()
-		
-		while True:
-
-			if self.stream_video == True:
-				
-				if self.camera is not None:
-					
-					frame = self.camera.get_frame()
-					try:
-						time = time_ns()
-						self.sio.emit('frame', { 'id' : self._suricate_id, 'time' : time, 'frame' : frame }, '/suricate_video_stream')
-			
-					except:
-						my_logger.exception("- Can't emit frame")
-						self.stream_video = False
-
-			else:
-				my_logger.info("Waiting... ")
-				sleep(1)
 
 
 parser = argparse.ArgumentParser()
