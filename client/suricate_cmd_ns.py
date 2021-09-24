@@ -1,8 +1,10 @@
 from __future__ import annotations
 import logging
 import base64
+from time import sleep
 import socketio
 from socketio import namespace 
+import numpy as np
 from camera_pi2 import Camera
 from servo import Servo
 import typing
@@ -24,6 +26,9 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		self.suricate_client = suricate_client
 		self.frame_count = 0
 		self.servo = Servo()
+		self.current_pan = 90
+		self.current_tilt = 90
+		self.is_moving_cam = False
 
 	def on_connect_error(self, data):
 		logger.critical("Connection error")
@@ -85,16 +90,65 @@ class SuricateCmdNS(socketio.ClientNamespace):
 			
 	def on_move_cam(self, vector):
 		
-		logger.info("+ Recieved move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
+		logger.debug("+ Recieved move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
+		
+		if self.is_moving_cam is True:
+			logger.info('+ Ignoring cam move')
+			return
 
+		delta = 0.1
 		pan = 90 * vector['x'] + 90
 		tilt = 90 * vector['y'] + 90
 		if tilt > 120:
 			tilt = 120
 		if tilt < 75:
 			tilt = 75
-			
-		logger.info("+ Pan: %.4f Tilt: %.4f", pan, tilt)
 
-		self.servo.setServoPwm('0', pan)
-		self.servo.setServoPwm('1', tilt)
+		if pan > 130:
+			pan = 130
+		if pan < 30:
+			pan = 30
+			
+		#pan = int(round(pan))
+		#tilt = int(round(tilt))
+		current_pan = self.current_pan
+		current_tilt = self.current_tilt
+
+		apan = iter(())
+		atilt = iter(())
+
+		num_pan = abs((current_pan - pan) / delta)
+		num_tilt = abs((current_tilt - tilt) / delta)
+
+		num = max(num_pan, num_tilt)
+		if num_pan >= 1 :
+			apan = np.nditer(np.linspace(current_pan, pan, num))
+		if num_tilt >= 1 :
+			atilt = np.nditer(np.linspace(current_tilt, tilt, num))
+		
+		logger.info("+ Pan: %.4f(%f) Tilt: %.4f(%f)", pan, num_pan, tilt, num_tilt)
+
+		if self.is_moving_cam is not True:
+			self.is_moving_cam = True
+			p = next(apan, False)
+			t = next(atilt, False)
+			while p or t:
+				
+				if p:
+					logger.info("+ setServoPwm('0', %f", p)
+					self.servo.setServoPwm('0', p)
+					self.current_pan = p
+
+				if t:
+					logger.info("+ setServoPwm('1', %f", t)
+					self.servo.setServoPwm('1', t)
+					self.current_tilt = t
+
+				sleep(0.001)
+				 
+				p = next(apan, False)
+				t = next(atilt, False)
+
+			self.is_moving_cam = False
+		else:
+			logger.info('+ Ignoring cam move')
