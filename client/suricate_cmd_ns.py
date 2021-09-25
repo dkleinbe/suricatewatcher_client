@@ -83,12 +83,18 @@ class SuricateCmdNS(socketio.ClientNamespace):
 	def on_start_cam_ctrl(self, data):
 
 		logger.info("+ Recieved start cam ctrl")
+		self.is_moving_cam = True
+		self.pan_incr = 0
+		self.tilt_incr = 0
+		self.cam_motion()
 
 	def on_stop_cam_ctrl(self, data):
 
 		logger.info("+ Recieved stop cam ctrl")
+
+		self.is_moving_cam = False
 			
-	def on_move_cam(self, vector):
+	def on_move_cam_old(self, vector):
 		
 		logger.debug("+ Recieved move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
 		
@@ -152,3 +158,47 @@ class SuricateCmdNS(socketio.ClientNamespace):
 			self.is_moving_cam = False
 		else:
 			logger.info('+ Ignoring cam move')
+
+	def on_move_cam(self, vector):
+		
+		logger.debug("+ Recieved move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
+		
+		delta = 0.01
+		dx = vector['x']
+		dy = vector['y']
+		self.pan_incr = 0
+		self.tilt_incr = 0
+
+		if dx != 0:
+			self.pan_incr = dx * (abs(dx) + delta / abs(dx))
+		if dy != 0:
+			self.tilt_incr = dy * (abs(dy) + delta / abs(dy))
+			
+		logger.info("+ pan_incr: [%f] tilt_incr: [%f] ", self.pan_incr, self.tilt_incr)
+		
+
+	def cam_motion(self):
+
+		while self.is_moving_cam:
+
+			pan = self.current_pan + self.pan_incr
+			tilt = self.current_tilt + self.tilt_incr
+
+			if tilt > 120:
+				tilt = 120
+			if tilt < 75:
+				tilt = 75
+
+			if pan > 130:
+				pan = 130
+			if pan < 30:
+				pan = 30
+		
+			self.servo.setServoPwm('0', pan)
+			self.servo.setServoPwm('1', tilt)
+			self.suricate_client.camera.camera.wait_recording(0)
+			#sleep(0.05)
+
+			self.current_pan = pan
+			self.current_tilt = tilt
+
