@@ -83,3 +83,7 @@ class Camera(BaseCamera):
 			self.camera.stop_recording()
 			self.camera.close()
 
+	def wait_recording(self, t):
+
+		if self.camera is not None:
+			self.camera.wait_recording(t)

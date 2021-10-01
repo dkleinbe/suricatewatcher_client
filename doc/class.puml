@@ -5,28 +5,49 @@ class Client {
 
 }
 
-class CameraEvent {
-  
+class Suricate {
+  start_video_stream()
+  stop_video_stream()
+
+  start_cam_ctrl()
+  stop_cam_ctrl()
+  move_cam()
+}
+
+class SuricateVideoStreamNS {
+
+}
+
+class SuricateCmdNS {
+
 }
 
 abstract class BaseCamera {
-  Frame get_frame()
-  {abstract} {static} frames()
+  start_streaming()
+  stop_streaming()
 }
 
-class Camera {
 
-  {static} frames()
+
+class CameraPi2 {
+
 
 }
 
-class CameraPi {
-
-  {static} frames()
+class CamServo {
+  start_cam_ctrl()
+  stop_cam_ctrl()
+  move_cam()
 }
 
-BaseCamera <|-- Camera
-BaseCamera <|-- CameraPi
-Client --> BaseCamera
+BaseCamera <|-- CameraPi2
+Client --> Suricate
+Client --> SuricateVideoStreamNS
+Client --> SuricateCmdNS
+Suricate --> BaseCamera
+Suricate --> CamServo
+
+SuricateCmdNS --> Client
+
 
 @enduml
