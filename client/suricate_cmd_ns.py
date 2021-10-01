@@ -19,20 +19,17 @@ logger = logging.getLogger('suricate_client.' + __name__)
 
 class SuricateCmdNS(socketio.ClientNamespace):
 
-	logger.info('class SuricateCmdNS')
+	logger.debug('class SuricateCmdNS')
 	
 	connection_count = 0
 
 	def __init__(self, namespace, suricate_client : Client):
+
 		logger.info("+ Init SuricateCmdNS")
+
 		super(socketio.ClientNamespace, self).__init__(namespace)
 		
 		self.suricate_client = suricate_client
-		self.frame_count = 0
-		
-		self.current_pan = 90
-		self.current_tilt = 90
-		self.is_moving_cam = False
 
 	def on_connect_error(self, data):
 		logger.critical("Connection error")
