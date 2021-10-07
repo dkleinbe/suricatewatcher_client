@@ -44,7 +44,12 @@ class StreamBuffer(object):
 			self.buffer.write(buf)
 			
 			time = time_ns()
-			self.sio.emit('frame', { 'id' : self.suricate_id, 'time' : time, 'frame' : self.buffer.getvalue() }, '/suricate_video_stream')
+			self.sio.emit('frame', 
+			              { 'id' : self.suricate_id, 
+						    'time' : time, 
+							'frame' : self.buffer.getvalue() 
+						  }, 
+						  '/suricate_video_stream')
 
 			self.buffer.seek(0)
 			self.buffer.truncate()

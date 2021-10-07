@@ -63,7 +63,7 @@ class Client:
 	def id(self, id):
 		my_logger.debug('+ Setting suricate camera: ' + str(id))
 		self._suricate_id = id	
-
+# TODO: remove camera and stream_video properties if not needed
 	@property
 	def camera(self) -> CamType:
 		my_logger.debug('+ Getting suricate camera: ' + str(self._camera))
@@ -88,6 +88,9 @@ class Client:
 		
 		self.sio.wait()
 
+	def stop(self):
+
+		self.sio.disconnect()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-host", help="host to connecto: http://host:port")
@@ -100,6 +103,13 @@ else:
 
 client = Client()
 
-client.run()
+try:
+
+	client.run()
+
+except KeyboardInterrupt:
+	my_logger.info("+ Terminated ")
+	client.stop()
+
 
 my_logger.critical("I'm dead meat.........")

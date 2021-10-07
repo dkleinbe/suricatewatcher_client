@@ -15,7 +15,8 @@ class Suricate:
 		self.current_pan = 90
 		self.current_tilt = 90
 		self.is_moving_cam = False
-
+		self.camera = None
+		self.stream_video = None
 
 	def start_video_stream(self):
 
@@ -37,7 +38,7 @@ class Suricate:
 		self.stream_video = False
 
 	def start_cam_ctrl(self):
-		""" Start cam motion controle. 
+		""" Start cam motion control. 
 
 		*shall be run in a separated thread* 
 		"""
