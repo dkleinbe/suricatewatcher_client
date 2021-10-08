@@ -9,6 +9,8 @@ from gpiozero import CPUTemperature, LoadAverage
 import numpy as np
 from ultrasonic import Ultrasonic
 from ADC import Adc
+from functools import reduce
+import psutil
 
 from suricate import Suricate
 from camera_pi2 import Camera
@@ -51,20 +53,21 @@ class SuricateCmdNS(socketio.ClientNamespace):
 
 		self.is_connected = True
 		suricate_data = {}
+		nb_cpu = psutil.cpu_count()
+
 		while self.is_connected:
 			
 			if self.suricate is not None and self.suricate.stream_video is True:
-				with io.open(loadavg.load_average_file, 'r') as f:
+				
+				load =  psutil.cpu_percent(interval=0, percpu=False)
 
-					file_columns = f.read().strip().split()
-					load = float(file_columns[loadavg._load_average_file_column])
 				distance = ultrasonic.get_distance()
 				left_sensor, right_sensor = adc.get_photosensors()
 				power = adc.get_power()
 
-				logger.info("+ CPU Temp: %.2f, CPU load: %.2f Distance: %.2f", cpu.temperature, load, distance)
-				logger.info("+ Left sensor: %.2f, Right sensor: %.2f | delta %.2f", left_sensor, right_sensor, abs(left_sensor - right_sensor))
-				logger.info("+ Power: %.2f V", power)
+				logger.debug("+ CPU Temp: %.2f, CPU load: %.2f Distance: %.2f", cpu.temperature, load, distance)
+				logger.debug("+ Left sensor: %.2f, Right sensor: %.2f | delta %.2f", left_sensor, right_sensor, abs(left_sensor - right_sensor))
+				logger.debug("+ Power: %.2f V", power)
 
 				suricate_data['id'] = self.suricate.suricate_id
 				suricate_data['cpu_temp'] = cpu.temperature
@@ -75,7 +78,7 @@ class SuricateCmdNS(socketio.ClientNamespace):
 
 				self.suricate_client.sio.emit('suricate_data', suricate_data , '/suricate_cmd')
 
-			sleep(1)
+			sleep(0.25)
 
 
 
