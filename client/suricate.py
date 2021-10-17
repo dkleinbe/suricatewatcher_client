@@ -1,5 +1,5 @@
 import logging
-
+from time import sleep
 from camera_pi2 import Camera
 from servo import Servo
 
@@ -23,6 +23,7 @@ class Suricate:
 		logger.info("+ Starting camera...")
 
 		self.camera = Camera(self.suricate_id, self.sio)
+		
 		self.camera.start_streaming()
 
 		self.stream_video = True
@@ -58,18 +59,18 @@ class Suricate:
 
 	def move_cam(self, vector):
 		
-		logger.info("+ move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
+		logger.debug("+ move_cam x: %.4f y: %.4f", vector['x'], vector['y'])
 		
-		delta = 0.01
-		dx = vector['x']
-		dy = vector['y']
+		delta = 1
+		dx = vector['x'] * 2
+		dy = vector['y'] * 2
 		self.pan_incr = 0
 		self.tilt_incr = 0
 
 		if dx != 0:
-			self.pan_incr = dx * (abs(dx) + delta / abs(dx))
+			self.pan_incr = int(dx * (abs(dx) + delta / abs(dx)))
 		if dy != 0:
-			self.tilt_incr = dy * (abs(dy) + delta / abs(dy))
+			self.tilt_incr = int(dy * (abs(dy) + delta / abs(dy)))
 			
 		logger.debug("+ pan_incr: [%f] tilt_incr: [%f] ", self.pan_incr, self.tilt_incr)
 		
@@ -83,18 +84,21 @@ class Suricate:
 
 			if tilt > 120:
 				tilt = 120
-			if tilt < 75:
-				tilt = 75
+			if tilt < 80:
+				tilt = 80
 
 			if pan > 130:
 				pan = 130
 			if pan < 30:
 				pan = 30
 		
+			logger.debug("+ pan [%f] tilt [%f]", pan, tilt)
 			self.servo.setServoPwm('0', pan)
+			sleep(0.02)
 			self.servo.setServoPwm('1', tilt)
-			self.camera.wait_recording(0)
-			#sleep(0.05)
+			sleep(0.02)
+			#self.camera.wait_recording(0)
+			
 
 			self.current_pan = pan
 			self.current_tilt = tilt

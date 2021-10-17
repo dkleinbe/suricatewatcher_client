@@ -44,10 +44,23 @@
                 
                 "level": "INFO"
             },
+            "suricate_client.servo": {
+                
+                "level": "INFO"
+            },            
             "suricate_client.camera_pi2": {
                 
                 "level": "INFO"
+            },            
+            "suricate_client.PCA9685": {
+                
+                "level": "INFO"
+            },            
+            "suricate_client.suricate": {
+                
+                "level": "INFO"
             }
+            
         },
         "root": {
             "handlers": ["console"],

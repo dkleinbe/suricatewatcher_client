@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import time
 import math
 import smbus
@@ -7,6 +8,7 @@ import smbus
 # ============================================================================
 # Raspi PCA9685 16-Channel PWM Servo Driver
 # ============================================================================
+logger = logging.getLogger('suricate_client.' + __name__)
 
 class PCA9685:
 
@@ -63,11 +65,17 @@ class PCA9685:
     self.write(self.__LED0_ON_H+4*channel, on >> 8)
     self.write(self.__LED0_OFF_L+4*channel, off & 0xFF)
     self.write(self.__LED0_OFF_H+4*channel, off >> 8)
-  def setMotorPwm(self,channel,duty):
-    self.setPWM(channel,0,duty)
+
+  def setMotorPwm(self, channel, duty):
+    self.setPWM(channel, 0, duty)
+
   def setServoPulse(self, channel, pulse):
     "Sets the Servo Pulse,The PWM frequency must be 50HZ"
+
     pulse = pulse*4096/20000        #PWM frequency is 50HZ,the period is 20000us
+
+    logger.debug('+         setServoPulse channel %d pulse %d', channel, int(pulse))
+
     self.setPWM(channel, 0, int(pulse))
 
 if __name__=='__main__':

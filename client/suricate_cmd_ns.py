@@ -54,27 +54,34 @@ class SuricateCmdNS(socketio.ClientNamespace):
 		self.is_connected = True
 		suricate_data = {}
 		nb_cpu = psutil.cpu_count()
-
+		sample = 0
 		while self.is_connected:
 			
 			if self.suricate is not None and self.suricate.stream_video is True:
 				
-				load =  psutil.cpu_percent(interval=0, percpu=False)
-
+	
 				distance = ultrasonic.get_distance()
 				left_sensor, right_sensor = adc.get_photosensors()
-				power = adc.get_power()
-
-				logger.debug("+ CPU Temp: %.2f, CPU load: %.2f Distance: %.2f", cpu.temperature, load, distance)
-				logger.debug("+ Left sensor: %.2f, Right sensor: %.2f | delta %.2f", left_sensor, right_sensor, abs(left_sensor - right_sensor))
-				logger.debug("+ Power: %.2f V", power)
 
 				suricate_data['id'] = self.suricate.suricate_id
-				suricate_data['cpu_temp'] = cpu.temperature
-				suricate_data['cpu_load'] = load
+				if sample == 0:
+
+					load =  psutil.cpu_percent(interval=0, percpu=False)
+					power = adc.get_power()
+
+					suricate_data['cpu_temp'] = cpu.temperature
+					suricate_data['cpu_load'] = load
+					suricate_data['battery_power'] = power
+
+					sample = 8
+				sample -= 1
+
 				suricate_data['distance_sensor'] = distance
 				suricate_data['light_sensor'] = {'left' : left_sensor, 'right' : right_sensor}
-				suricate_data['battery_power'] = power
+				
+				logger.debug("+ CPU Temp: %.2f, CPU load: %.2f Distance: %.2f", cpu.temperature, suricate_data['cpu_load'], distance)
+				logger.debug("+ Left sensor: %.2f, Right sensor: %.2f | delta %.2f", left_sensor, right_sensor, abs(left_sensor - right_sensor))
+				logger.debug("+ Power: %.2f V", suricate_data['battery_power'])
 
 				self.suricate_client.sio.emit('suricate_data', suricate_data , '/suricate_cmd')
 

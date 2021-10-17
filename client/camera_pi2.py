@@ -72,7 +72,7 @@ class Camera(BaseCamera):
 	def start_streaming(self):
 		
 		logger.info('+ Start streaming')
-		self.camera = PiCamera(sensor_mode=2, resolution='500x500', framerate=30)
+		self.camera = PiCamera(sensor_mode=4, resolution='530x400', framerate=20) # resolution='500x500',
 		
 			# let camera warm up
 		#sleep(2)
